@@ -73,7 +73,7 @@ angular.module("seriesOrganizer")
       }
     };
 
-    $scope.removeWatchlistNoWarning = function (serie) {
+    $scope.removeWatchlistToProfile = function (serie) {
       $scope.watchlist.splice($scope.watchlist.indexOf(serie), 1);
     };
 
