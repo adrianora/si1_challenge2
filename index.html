@@ -1,0 +1,240 @@
+<!DOCTYPE html><html lang="pt-BR" ng-app="seriesOrganizer">
+  <head>
+    <meta http-equiv="Content-type" content="text/html; charset=UTF-8" />
+    <title>Sistema de Informação 2 - Lab 2</title>
+    <meta name="description" content="Implementação web com api REST em HTML, CSS e AngularJS." />
+    <!-- styles -->
+    <link rel="shortcut icon" type="image/ico" href="#" />
+    <link rel="stylesheet" type="text/css" href="assets/css/style.css">
+   <!-- jquery -->
+    <script type="text/javascript" src="assets/lib/jquery/jquery-3.2.1.js"></script>
+    <!-- bootstrap -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <!-- angularjs core -->
+    <script src="assets/lib/angular/angular.js"></script>
+	  <script src="assets/lib/angular/angular-messages.js"></script>
+    <!-- angularjs modules -->
+    <script src="app/app.module.js"></script>
+    <script src="app/seriesOrganizerController.js"></script>
+  </head>
+
+  <body ng-controller="seriesOrganizerController">
+
+    <div class="container">
+
+      <div class="row" style="margin-top: 5%;">
+        <!-- search form -->
+        <div class="row">
+          <nav class="navbar navbar-default col-md-8 center">
+            <div class="container-fluid">
+              <div class="navbar-header">
+                <a href="#" class="navbar-brand">IMDB</a>
+              </div>
+              <form class="navbar-form navbar-left" role="search">
+                <input class="form-control" type="text" ng-model="input" name="input" placeholder="Search" onfocus="placeholder=''" onblur="placeholder='Search'" size="72">
+                <button type="submit" class="btn btn-default" id="search-button" ng-click="enviarInput()" data-toggle="modal" data-target="#myModal">Procurar</button>
+              </form>
+            </div>
+          </nav>
+        </div>
+
+        <!-- modal search  -->
+        <div class="modal fade bs-example-modal-lg" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+          <div class="modal-dialog modal-lg" role="document">
+            <!-- modal search content -->
+            <div class="modal-content">
+              <!-- modal search header -->
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalLabel">Resultados da pesquisa</h4>
+              </div>
+              <!-- modal search body -->
+              <div class="modal-body">
+                <div ng-show="searchRequest.length == 0">
+                  <div class="jumbotron" style="text-align: left;">
+                    <h1>Nenhuma série foi encontrada :(</h1>
+                  </div>
+                </div>
+                <div ng-show="searchRequest.length > 0">
+                  <div class="col-md-4 element-box" ng-repeat="serie in searchRequest">
+                    <!-- element image -->
+                    <div ng-if="serie.Poster === 'N/A'">
+                      <div style="width: 215px; height: 250px; background: url(assets/img/noPhoto.jpg); background-size: cover; background-position: center; background-repeat: no-repeat; -webkit-filter: brightness(90%) contrast(100%);"></div>
+                    </div>
+                    <div ng-if="serie.Poster !== 'N/A'">
+                      <div style="width: 215px; height: 250px; background: url( {{serie.Poster}} ); background-size: cover; background-position: center;"></div>
+                    </div>
+                    <!-- element description -->
+                    <h4>{{serie.Title}}</h4>
+                    <!-- buttons -->
+                    <div class="bottom">
+                      <!-- profile button -->
+                      <button class="btn btn-default add-button-search-profile" ng-click="addSerieOnProfile(serie)">
+                        <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>Adicionar
+                      </button>
+                      <!-- watchlist button -->
+                      <button class="btn btn-default add-button-search-watchlist" ng-click="addSerieOnWatchlist(serie)">
+                        <span class="glyphicon glyphicon-star" aria-hidden="true"></span>Lista de desejo
+                      </button>
+                    </div>  
+                  </div>
+                </div>
+              </div>
+              <!-- modal search footer -->
+              <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      <!-- end row -->
+      </div>
+
+      <!-- navigation bars and content -->
+      <div class="row">
+          <div class="col-md-8 center">
+            <!-- Nav tabs -->
+            <ul class="nav nav-tabs">
+              <li role="presentation" class="active"><a href="#home" data-toggle="tab"><span class="glyphicon glyphicon-user" aria-hidden="true"></span>   Dashboard</a></li>
+              <li role="presentation"><a href="#watchlist" data-toggle="tab"><span class="glyphicon glyphicon-bookmark" aria-hidden="true"></span>   Watchlist</a></li>
+            </ul>
+
+            <!-- Tab panes -->
+            <div class="tab-content">
+              <!-- profile dashboard  -->
+              <div role="tabpanel" class="tab-pane active" id="home">
+                <!-- profile without elements  -->
+                <div ng-show="profile.length == 0">
+                  <div class="jumbotron" style="text-align: left;">
+                    <h1>Seu perfil não tem séries cadastradas :/</h1>
+                    <p>Pesquise por uma série e adicione ao seu perfil.</p>
+                  </div>
+                </div>
+                <!-- profile with dashboard  -->
+                <div ng-show="profile.length > 0">
+                  <div class="col-md-4 element-box" ng-repeat="serie in profile">
+                    <!-- profile with dashboard element image -->
+                    <div ng-if="serie.Poster === 'N/A'">
+                      <div style="width: 215px; height: 250px; background: url(assets/img/noPhoto.jpg); background-size: cover; background-position: center; background-repeat: no-repeat; -webkit-filter: brightness(90%) contrast(100%);"></div>
+                    </div>
+                    <div ng-if="serie.Poster !== 'N/A'">
+                      <div style="width: 215px; height: 250px; background: url( {{serie.Poster}} ); background-size: cover; background-position: center;"></div>
+                    </div>
+                    <!-- profile with dashboard title -->
+                    <h5 class="serie-title">{{serie.Title}}</h5>
+                    <!-- profile with dashboard buttons -->
+                    <div class="buttons bottom">
+                      <button class="btn btn-default" ng-click="setSerieToDisplay(serie)" data-toggle="modal" data-target="#myModal{{$index}}"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>   Sobre</button>
+                      <button class="btn btn-default" ng-click="removeSerieFromProfile(serie)"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span>   Remover</button>
+                    </div>
+
+                  <!-- modal inside serie element -->
+                  <div class="modal fade bs-example-modal-lg" id="myModal{{$index}}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+                    <div class="modal-dialog modal-lg" role="document">
+                      <!-- modal inside serie content -->
+                      <div class="modal-content">
+                        <!-- modal inside serie header -->
+                        <div class="modal-header">
+                          <button type="button" class="close" data-dismiss="modal">&times;</button>
+                          <h3 class="modal-title">{{serie.Title}}</h3>
+                        </div>
+                        <!-- modal inside serie body -->
+                        <div class="modal-body" style="width: 100%;">
+                          <!-- modal inside serie content title -->
+                          <div class="row">
+                            <div class="col-md-4">
+                              <div ng-if="serie.Poster === 'N/A'">
+                                <div style="width: 215px; height: 250px; background: url(assets/img/noPhoto.jpg); background-size: cover; background-position: center; background-repeat: no-repeat; -webkit-filter: brightness(90%) contrast(100%);"></div>
+                              </div>
+                              <div ng-if="serie.Poster !== 'N/A'">
+                                <div style="width: 215px; height: 320px; background: url( {{serie.Poster}} ); background-size: cover; background-position: center;"></div>
+                              </div>
+                            </div>
+
+                            <div class="col-md-8">
+                              <h4><strong>Sinopse:</strong></h4>
+                              <p>{{serie.Plot}}</p>
+                              <!-- modal inside serie content stats -->
+                              <p>
+                                <strong>Lançamento:</strong> {{serie.Released}}<br>
+                                <strong>Gênero:</strong> {{serie.Genre}}<br>
+                                <strong>Roteiro:</strong> {{serie.Writer}}<br>
+                                <strong>Atores:</strong> {{serie.Actors}}<br>
+                                <strong>País:</strong> {{serie.Country}}<br>
+                                <strong>Prêmios:</strong> {{serie.Awards}}<br>
+                                <strong>Nota IMDB:</strong> {{serie.imdbRating}}<br>
+                                <strong>Temporadas:</strong> {{serie.totalSeasons}}<br>
+                              </p>
+                            </div>
+                          </div>
+
+                          <hr style="border: #e5e5e5 1px solid; border-radius: 5px;">
+
+                          <div class="row">
+                            <div class="col-md-6">
+                              <form class="navbar-form navbar-left">
+                                <label>Sua nota: {{serie.myRating}}</label><br>
+                                <input class="form-control" type="text" name="rating" ng-model="rating">
+                                <button class="btn btn-default" type="submit" ng-click="addRatingOnProfile(serie, rating)"><i class="glyphicon glyphicon-ok-circle"></i></button>
+                              </form><br>
+                              <form class="navbar-form navbar-left">
+                                <label>Último Episódio: {{serie.lastEpisode}}</label><br>
+                                <input class="form-control" type="text" name="episode" ng-model="episode">
+                                <button class="btn btn-default" type="submit" ng-click="addLastEpisodeOnProfile(serie, episode)"><i class="glyphicon glyphicon-ok-circle"></i></button>
+                              </form><br>
+                            </div>
+                          </div>
+
+                        </div>
+                        <!-- modal inside serie content button dimiss -->
+                        <div class="modal-footer">
+                          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <!-- end modal inside serie element -->
+                  </div>
+                </div>
+              </div>
+
+              <!-- watchlist dashboard  -->
+              <div role="tabpanel" class="tab-pane" id="watchlist">
+                <!-- watchlist without elements  -->
+                <div ng-show="watchlist.length == 0">
+                  <div class="jumbotron" style="text-align: left;">
+                    <h1>Sua lista de desejos está vazia :/</h1>
+                      <p>Pesquise por uma série e adicione a sua lista de desejo.</p>
+                  </div>
+                </div>
+                <!-- watchlist with dashboard  -->
+                <div ng-show="watchlist.length > 0">
+                  <div class="col-md-4 element-box" ng-repeat="serie in watchlist">
+                    <!-- watchlist with dashboard element image -->
+                    <div ng-if="serie.Poster === 'N/A'">
+                      <div style="width: 215px; height: 250px; background: url(assets/img/noPhoto.jpg); background-size: cover; background-position: center; background-repeat: no-repeat; -webkit-filter: brightness(90%) contrast(100%);"></div>
+                    </div>
+                    <div ng-if="serie.Poster !== 'N/A'">
+                      <div style="width: 215px; height: 250px; background: url( {{serie.Poster}} ); background-size: cover; background-position: center;"></div>
+                    </div>
+                    <!-- watchlist with dashboard title -->
+                    <h5>{{serie.Title}}</h5>
+                    <!-- watchlist with dashboard buttons -->
+                    <div class="buttons bottom">
+                      <button class="btn btn-default" ng-click="addSerieOnProfile(serie); removeWatchlistNoWarning(serie)"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span>   Perfil</button>
+                      <button class="btn btn-default" ng-click="removeWatchlist(serie)"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span>   Remover</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            <!-- end dashboard main tab-content -->
+            </div>
+          <!-- end dashboard main col-md-12 -->
+          </div>
+      <!-- end dashboard main row -->
+      </div>
+
+  </body>
+</html>
